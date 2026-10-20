@@ -1037,7 +1037,7 @@ class World(private val sfx: Sfx) {
             ax /= ll; ay /= ll
             crossDist = l
         } else {
-            crossDist = 220f
+            crossDist = if (sniperScoped) 220f else 110f
         }
         // scope sway and breath holding
         swayT += dt
@@ -1394,6 +1394,8 @@ class World(private val sfx: Sfx) {
                 // cover and solid buildings block bullets
                 var blocked = false
                 for (cv in covers) {
+                    // low sandbags and wrecks do not stop the player's shots (shots go over the top)
+                    if (b.fromPlayer && cv.kind != 1) continue
                     if (abs(b.x - cv.x) < cv.w / 2f && abs(b.y - cv.y) < cv.d / 2f) {
                         // a shooter standing right behind the cover can fire over it
                         if (!(abs(b.ox - cv.x) < cv.w / 2f + 26f && abs(b.oy - cv.y) < cv.d / 2f + 26f)) { blocked = true; break }
@@ -1446,7 +1448,8 @@ class World(private val sfx: Sfx) {
                 // soldiers
                 for (s in soldiers) {
                     if (s.dead || s.inVeh || sideOf(s.team) == bs) continue
-                    if (abs(b.x - s.x) < 11f && abs(b.y - s.y) < 11f) {
+                    val hr = if (b.fromPlayer) 15f else 11f
+                    if (abs(b.x - s.x) < hr && abs(b.y - s.y) < hr) {
                         var dm = b.dmg
                         if (b.fromPlayer && b.kind == 0) {
                             val tr = hypot(b.x - b.ox, b.y - b.oy) / W_RANGE[b.wpn]

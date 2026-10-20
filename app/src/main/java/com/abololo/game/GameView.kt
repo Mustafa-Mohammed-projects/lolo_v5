@@ -339,19 +339,20 @@ class GameView(
         return null
     }
 
-    private fun fireX() = 540f - 80f
+    private fun rEdge() = 540f + offX
+    private fun fireX() = rEdge() - 80f
     private fun fireY() = wh - 130f
-    private fun reloadX() = 540f - 180f
+    private fun reloadX() = rEdge() - 180f
     private fun reloadY() = wh - 84f
-    private fun scopeX() = 540f - 186f
+    private fun scopeX() = rEdge() - 186f
     private fun scopeY() = wh - 170f
-    private fun crouchX() = 286f
+    private fun crouchX() = rEdge() - 254f
     private fun crouchY() = wh - 128f
-    private fun breathX() = 290f
+    private fun breathX() = rEdge() - 250f
     private fun breathY() = wh - 214f
-    private fun wpnX() = 540f - 56f
+    private fun wpnX() = rEdge() - 56f
     private fun wpnY() = wh - 250f
-    private fun supX() = 540f - 56f
+    private fun supX() = rEdge() - 56f
     private fun supY() = wh - 330f
 
     private fun rotateView(dx: Float, dy: Float) {
@@ -388,7 +389,7 @@ class GameView(
             if (hypot(x - supX(), y - supY()) < 40f) { btnId = ptr; world.callSupport(); return }
         }
         if (wmenu) { wmenu = false; return }
-        if (joyId == -1 && x < 250f && y > wh * 0.4f) {
+        if (joyId == -1 && x < 250f - offX && y > wh * 0.4f) {
             joyId = ptr
             joyOx = x; joyOy = y; joyKx = x; joyKy = y
             joyVX = 0f; joyVY = 0f
@@ -536,7 +537,7 @@ class GameView(
         var ex = fx - dirx * hd
         var ey = dist * sin(pitchRad) + 6f
         var ez = fz - dirz * hd
-        val ahead = if (scoped) 150f + 30f * zm else 70f
+        val ahead = if (scoped) 220f else if (v != null) 70f else 110f
         var cx = fx + dirx * ahead
         var cy = 10f
         var cz = fz + dirz * ahead
@@ -1152,20 +1153,20 @@ class GameView(
         if (world.objId == 3) sub = L.t("الخبراء: ", "Experts: ") + world.expertsAlive()
         if (frac >= 0f) bar(c, 20f, 44f, 200f, 10f, frac, Color.rgb(120, 220, 140))
         if (sub.isNotEmpty()) txt(c, sub, if (frac >= 0f) 340f else 240f, 54f, 15f, Color.WHITE)
-        if (state == S_PLAY) button(c, B_PAUSE, 506f, 36f, 52f, 46f, "II", 1, 22f)
+        if (state == S_PLAY) button(c, B_PAUSE, rEdge() - 34f, 36f, 52f, 46f, "II", 1, 22f)
         // health, weapon, ammo
         val v = world.pveh
         if (v != null && !v.dead) {
-            bar(c, 16f, 74f, 180f, 12f, v.hp / v.maxHp, Color.rgb(120, 220, 130))
-            txt(c, L.t("المركبة - مدفع 23 ملم", "Vehicle - 23mm cannon"), 204f, 85f, 14f, Color.WHITE, Paint.Align.LEFT)
+            bar(c, 16f - offX, 74f, 180f, 12f, v.hp / v.maxHp, Color.rgb(120, 220, 130))
+            txt(c, L.t("المركبة - مدفع 23 ملم", "Vehicle - 23mm cannon"), 204f - offX, 85f, 14f, Color.WHITE, Paint.Align.LEFT)
         } else {
-            bar(c, 16f, 74f, 180f, 12f, pl.hp / pl.maxHp, if (pl.hp / pl.maxHp > 0.35f) Color.rgb(120, 220, 130) else Color.rgb(230, 70, 60))
+            bar(c, 16f - offX, 74f, 180f, 12f, pl.hp / pl.maxHp, if (pl.hp / pl.maxHp > 0.35f) Color.rgb(120, 220, 130) else Color.rgb(230, 70, 60))
             val w = world.weapon
             val am = if (world.reloadT > 0f) L.t("تعبئة...", "reloading...") else world.ammo[w].toString() + " / " + world.reserve[w]
-            txt(c, weaponName(w) + "   " + am, 204f, 85f, 14f, Color.WHITE, Paint.Align.LEFT)
+            txt(c, weaponName(w) + "   " + am, 204f - offX, 85f, 14f, Color.WHITE, Paint.Align.LEFT)
         }
         if (world.objId == 5) {
-            for (i in 0 until 6) heart(c, 26f + i * 26f, 108f, 9f, if (i < world.hearts) Color.rgb(230, 60, 70) else Color.rgb(80, 60, 66))
+            for (i in 0 until 6) heart(c, 26f - offX + i * 26f, 108f, 9f, if (i < world.hearts) Color.rgb(230, 60, 70) else Color.rgb(80, 60, 66))
         }
         if (world.waitCut) return
         // tags and bars over the 3D world
@@ -1215,7 +1216,7 @@ class GameView(
         // hit marker and damage numbers
         if (world.hitT > 0f && state == S_PLAY && world.pveh == null) {
             val hx = 270f
-            val hy = wh * 0.46f
+            val hy = wh * 0.5f
             val a = (world.hitT / 0.28f).coerceIn(0f, 1f)
             p.style = Paint.Style.STROKE
             p.shader = null
@@ -1236,14 +1237,14 @@ class GameView(
         // scope overlay
         if (world.scoped && world.pveh == null && state == S_PLAY) {
             val cx = 270f
-            val cy = wh * 0.46f
+            val cy = wh * 0.5f
             val r = 190f
             p.style = Paint.Style.STROKE
             p.shader = null
             p.color = Color.BLACK
             p.alpha = 255
-            p.strokeWidth = 900f
-            c.drawCircle(cx, cy, r + 450f, p)
+            p.strokeWidth = 1600f
+            c.drawCircle(cx, cy, r + 800f, p)
             p.strokeWidth = 3f
             p.color = Color.argb(200, 20, 20, 20)
             c.drawCircle(cx, cy, r, p)
@@ -1324,8 +1325,8 @@ class GameView(
             p.strokeWidth = 2f
             p.color = Color.WHITE
             p.alpha = 50
-            c.drawCircle(110f, wh - 130f, 54f, p)
-            txt(c, L.t("حرّك", "Move"), 110f, wh - 124f, 16f, Color.WHITE, alpha = 0.5f)
+            c.drawCircle(110f - offX, wh - 130f, 54f, p)
+            txt(c, L.t("حرّك", "Move"), 110f - offX, wh - 124f, 16f, Color.WHITE, alpha = 0.5f)
         }
         val inVeh = world.pveh != null
         circleBtn(c, fireX(), fireY(), 56f, if (fireHeld) Color.rgb(255, 110, 70) else Color.rgb(210, 60, 50), L.t("نار", "FIRE"), 22f, fireHeld)
